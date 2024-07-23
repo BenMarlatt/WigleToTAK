@@ -70,6 +70,30 @@ def update_analysis_mode():
         logger.error("Invalid analysis mode in the request")
         return jsonify({'error': 'Invalid analysis mode in the request'}), 400
 
+ALLOWED_EXTENSIONS = ['wiglecsv', 'csv']
+@app.route('/upload_file', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if file and file.filename.split('.')[-1] in ALLOWED_EXTENSIONS:
+        filename = file.filename
+        directory = os.path.join(os.getcwd(), 'uploads')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        full_path = os.path.join(directory, filename)
+        file.save(full_path)
+        
+        logger.info(f"File uploaded successfully: {full_path}")
+        broadcast_file_postcollection(full_path)
+        return jsonify({'message': 'File uploaded successfully!'}), 200
+    else:
+        return jsonify({'error': 'Invalid file extension'}), 400
+
 @app.route('/list_wigle_files', methods=['GET'])
 def list_wigle_files():
     directory = request.args.get('directory')

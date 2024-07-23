@@ -143,6 +143,11 @@
             </div>
 
             <div class="group-container">
+                <form id="selectFileUploadForm" action="/upload_file" method="post" enctype="multipart/form-data">
+                    <label for="selectWigleFile">Upload WigleCSV File:</label>
+                    <input id="selectWigleFile" type="file" name=file style="width: 100%;"/>
+                    <button type="upload">Upload</button>
+                </form>
                 <form id="directoryForm" action="/start_broadcast" method="post">
                     <label for="directory">Wigle CSV logs directory:</label>
                     <input type="text" id="directory" placeholder="Enter directory path (/opt/kismet)" style="width: 100%;">
@@ -314,6 +319,38 @@
                 }
             }
             document.getElementById("saveTAKServerButton").addEventListener("click", saveTakStuff);
+
+            // Event listener for "Upload" button
+            document.getElementById("selectFileUploadForm").addEventListener("submit", function(event) {
+                event.preventDefault();
+
+                var selectWigleFile = document.getElementById("selectWigleFile");
+                if (selectWigleFile) {
+                    var formData = new FormData();
+                    formData.append('file', selectWigleFile.files[0]); // Possible support for multiple files.
+                    const req = {
+                        method: "POST",
+                        body: formData
+                    }
+                    
+                    fetch('/upload_file', req)
+                        .then(response => {
+                            if (response.ok) {
+                                return response.json();
+                            } else {
+                                return response.text().then(text => { throw new Error(text) });
+                            }
+                        })
+                        .then(data => {
+                            alert("File uploaded successfully");
+                        })
+                        .catch(error => {
+                            alert("Error: " + error.message);
+                        });
+                } else {
+                    alert("Please select both a directory and a filename.");
+                }
+            });
 
             // Event listener for "Start" button
             document.getElementById("selectFileForm").addEventListener("submit", function(event) {
